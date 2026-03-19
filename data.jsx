@@ -111,7 +111,7 @@ export const partyPlaces = [
     district: "Makwanpur",
     province: "Bagmati",
     address: "School Road, Hetauda",
-    image: "https://source.unsplash.com/1600x900/?banquet,stage,decor&sig=108https://party-place-public-assets.s3.amazonaws.com/optimized-images/venue-images/Hotel%20Chantelle/HC%20Roof%20Reduced.webp",
+    image: "https://party-place-public-assets.s3.amazonaws.com/optimized-images/venue-images/Hotel%20Chantelle/HC%20Roof%20Reduced.webp",
     imageAlt: "Decorated banquet stage venue in Hetauda",
     capacity: 320,
     priceRangeNPR: "Rs. 110000 - Rs. 230000",
