@@ -88,8 +88,8 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50" ref={headerRef}>
-      <div className="brand-topline border-b border-border/70">
-        <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80 sm:px-6 lg:px-8">
+      <div className="border-b border-border bg-card">
+        <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground sm:px-6 lg:px-8">
           <p className="inline-flex items-center gap-1.5">
             <Sparkles className="size-3.5 text-secondary" />
             Nepal-Wide Venue Discovery
