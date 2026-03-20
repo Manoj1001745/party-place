@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { MapPinned, Menu, Moon, PhoneCall, Sparkles, Sun, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,17 @@ function useIsHydrated() {
   );
 }
 
+function isNavItemActive(pathname, href) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const isHydrated = useIsHydrated();
+  const headerRef = useRef(null);
 
   const isDark = resolvedTheme === "dark";
   const ariaThemeLabel = isHydrated
@@ -38,11 +44,50 @@ export function SiteHeader() {
     : "Toggle theme";
 
   function toggleTheme() {
+    if (!isHydrated) return;
     setTheme(isDark ? "light" : "dark");
   }
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    function handleOutsidePointerDown(event) {
+      if (!headerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("pointerdown", handleOutsidePointerDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("pointerdown", handleOutsidePointerDown);
+    };
+  }, [isOpen]);
+
   return (
-    <header className="sticky top-0 z-50">
+    <header className="sticky top-0 z-50" ref={headerRef}>
       <div className="brand-topline border-b border-border/70">
         <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80 sm:px-6 lg:px-8">
           <p className="inline-flex items-center gap-1.5">
@@ -55,7 +100,7 @@ export function SiteHeader() {
 
       <div className="border-b border-border bg-card/90 shadow-sm backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="inline-flex items-center gap-2.5">
+          <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center gap-2.5">
             <span
               className="grid size-9 place-items-center rounded-xl text-white shadow-md"
               style={{
@@ -73,12 +118,13 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isNavItemActive(pathname, item.href);
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setIsOpen(false)}
                   className={cn(
                     "rounded-full px-3 py-1.5 text-sm font-semibold transition",
                     isActive
@@ -99,14 +145,19 @@ export function SiteHeader() {
               size="icon-sm"
               onClick={toggleTheme}
               aria-label={ariaThemeLabel}
+              disabled={!isHydrated}
             >
               {isHydrated ? (isDark ? <Sun className="size-4" /> : <Moon className="size-4" />) : <Moon className="size-4" />}
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href="/signin">Sign In</Link>
+              <Link href="/signin" onClick={() => setIsOpen(false)}>
+                Sign In
+              </Link>
             </Button>
             <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/registration">Register</Link>
+              <Link href="/registration" onClick={() => setIsOpen(false)}>
+                Register
+              </Link>
             </Button>
           </div>
 
@@ -115,6 +166,8 @@ export function SiteHeader() {
             variant="ghost"
             size="icon"
             aria-label="Toggle menu"
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav-panel"
             className="md:hidden"
             onClick={() => setIsOpen((value) => !value)}
           >
@@ -123,6 +176,7 @@ export function SiteHeader() {
         </div>
 
         <div
+          id="mobile-nav-panel"
           className={cn(
             "overflow-hidden border-t border-border transition-all duration-300 md:hidden",
             isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
@@ -130,7 +184,7 @@ export function SiteHeader() {
         >
           <div className="space-y-2 bg-card px-4 py-3">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isNavItemActive(pathname, item.href);
 
               return (
                 <Link
@@ -154,6 +208,7 @@ export function SiteHeader() {
               className="w-full"
               onClick={toggleTheme}
               aria-label={ariaThemeLabel}
+              disabled={!isHydrated}
             >
               {isHydrated ? (isDark ? <Sun className="size-4" /> : <Moon className="size-4" />) : <Moon className="size-4" />}
               {isHydrated ? (isDark ? "Light Mode" : "Dark Mode") : "Theme"}
